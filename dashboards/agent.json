@@ -1,0 +1,339 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Dashboard for netbox-docker-agent metrics",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "type": "table",
+      "title": "Runtime per Container",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "label_replace(\r\n  netbox_docker_agent_container_running\r\n  or netbox_docker_agent_container_exited\r\n  or netbox_docker_agent_container_stopped,\r\n  \"clean_name\",\r\n  \"$1\",\r\n  \"name\",\r\n  \"^(.+?)(?:-[0-9]{13})?$\"\r\n)",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true,
+              "__name__": true,
+              "container": true,
+              "instance": true,
+              "job": true,
+              "name": true,
+              "state": true
+            },
+            "includeByName": {},
+            "indexByName": {},
+            "orderByMode": "manual",
+            "renameByName": {
+              "clean_name": "name",
+              "name": ""
+            }
+          }
+        }
+      ],
+      "options": {
+        "cellHeight": "sm",
+        "frameIndex": 0,
+        "showHeader": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dtdhms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": 0, "color": "green" },
+              { "value": 80, "color": "red" }
+            ]
+          },
+          "color": { "mode": "thresholds" },
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "footer": { "reducers": [] },
+            "inspect": false
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "% Containers Running",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 12, "y": 0, "w": 8, "h": 8 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "editorMode": "code",
+          "expr": "100 *\r\ncount(\r\n  max by (name) (\r\n    netbox_docker_agent_container_running\r\n  ) == 1\r\n)\r\n/\r\ncount(\r\n  max by (name) (\r\n    netbox_docker_agent_container_running\r\n    or\r\n    netbox_docker_agent_container_exited\r\n    or\r\n    netbox_docker_agent_container_stopped\r\n  )\r\n)",
+          "instant": true,
+          "legendFormat": "Running",
+          "range": false
+        }
+      ],
+      "options": {
+        "barShape": "flat",
+        "barWidthFactor": 0.5,
+        "effects": { "barGlow": false, "centerGlow": false, "gradient": false },
+        "endpointMarker": "point",
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "/^Running$/",
+          "values": false
+        },
+        "segmentCount": 1,
+        "segmentSpacing": 0.3,
+        "shape": "gauge",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "sparkline": false,
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": 0, "color": "green" },
+              { "value": 0, "color": "red" },
+              { "value": 99.9, "color": "#EAB839" },
+              { "value": 100, "color": "green" }
+            ]
+          },
+          "color": { "mode": "thresholds" },
+          "fieldMinMax": false
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Netbox Errors",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 4 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "netbox_docker_agent_netbox_error_response",
+          "instant": true,
+          "legendFormat": "Errors",
+          "range": false
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": 0, "color": "green" },
+              { "value": 1, "color": "red" }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Docker Daemon",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 20, "y": 4, "w": 4, "h": 4 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "netbox_docker_agent_docker_daemon",
+          "instant": true,
+          "legendFormat": "Daemon",
+          "range": false
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": { "text": "DOWN", "color": "red", "index": 0 },
+                "1": { "text": "UP", "color": "green", "index": 1 }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": 0, "color": "red" },
+              { "value": 1, "color": "green" }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "status-history",
+      "title": "Container Running History",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "x": 0, "y": 8, "w": 24, "h": 40 },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "editorMode": "code",
+          "expr": "max by (normalized_name) (\r\n  label_replace(\r\n    (\r\n      netbox_docker_agent_container_running\r\n      or\r\n      (netbox_docker_agent_container_exited * 0)\r\n      or\r\n      (netbox_docker_agent_container_stopped * 0)\r\n    ),\r\n    \"normalized_name\",\r\n    \"$1\",\r\n    \"name\",\r\n    \"^(.*?)(-[0-9]+)?$\"\r\n  )\r\n)",
+          "legendFormat": "{{name}}",
+          "range": true
+        }
+      ],
+      "options": {
+        "annotations": { "clustering": -1, "multiLane": false },
+        "colWidth": 1,
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": false },
+        "rowHeight": 0.81,
+        "showValue": "never",
+        "tooltip": { "hideZeros": false, "mode": "single", "sort": "none" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 1,
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": { "text": "Stopped" },
+                "1": { "text": "Running" }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": 0, "color": "red" },
+              { "value": 1, "color": "green" }
+            ]
+          },
+          "color": { "mode": "thresholds" },
+          "custom": {
+            "axisPlacement": "auto",
+            "fillOpacity": 100,
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineWidth": 3
+          }
+        },
+        "overrides": []
+      }
+    }
+  ],
+  "preload": false,
+  "refresh": "5m",
+  "schemaVersion": 38,
+  "tags": ["docker", "netbox"],
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "label": "Datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": { "text": "Paashup", "value": "paashup-prometheus" },
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false
+      }
+    ]
+  },
+  "time": { "from": "now-30m", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Netbox Docker Agents"
+}

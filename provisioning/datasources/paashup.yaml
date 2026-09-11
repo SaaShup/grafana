@@ -1,0 +1,16 @@
+apiVersion: 1
+
+# Fixed uid so the baked-in dashboards (see dashboards/) can reference this
+# datasource without going through the Grafana API/import step.
+datasources:
+  - name: Paashup
+    uid: paashup-prometheus
+    type: prometheus
+    access: proxy
+    url: $__env{PROM_URL}
+    isDefault: true
+    basicAuth: true
+    basicAuthUser: $__env{PROM_BASIC_AUTH_USER}
+    secureJsonData:
+      basicAuthPassword: $__env{PROM_BASIC_AUTH_PASSWORD}
+    editable: false
