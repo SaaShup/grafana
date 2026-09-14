@@ -40,7 +40,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # Derives 1.2.3, 1.2, 1 and latest from a tag such as v1.2.3
       - name: Compute image tags
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
@@ -60,3 +59,33 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  upgrade-webhook:
+    name: Notify upgrade webhook
+    needs: publish
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    timeout-minutes: 5
+    steps:
+      - name: Check webhook configuration
+        env:
+          WEBHOOK_DOMAIN: ${{ vars.WEBHOOK_DOMAIN }}
+          WEBHOOK_PATH: ${{ secrets.WEBHOOK_PATH }}
+        run: |
+          missing=""
+          [ -n "$WEBHOOK_DOMAIN" ] || missing="$missing WEBHOOK_DOMAIN"
+          [ -n "$WEBHOOK_PATH" ] || missing="$missing WEBHOOK_PATH"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secret(s)/variable(s):$missing"
+            exit 1
+          fi
+
+      - name: Notify upgrade webhook
+        env:
+          WEBHOOK_URL: https://${{ vars.WEBHOOK_DOMAIN }}${{ secrets.WEBHOOK_PATH }}
+          IMAGE: ${{ vars.DOCKERHUB_IMAGE || 'saashup/grafana' }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          curl -fsS -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"repository\":{\"repo_name\":\"$IMAGE\"},\"push_data\":{\"tag\":\"$TAG\"}}"
