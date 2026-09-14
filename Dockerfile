@@ -33,6 +33,7 @@ LABEL traefik.enable="true" \
       traefik.http.routers.grafana.entrypoints="http" \
       traefik.http.services.grafana.loadbalancer.server.port="3000" \
       traefik.http.middlewares.force-https-header.headers.customrequestheaders.X-Forwarded-Proto="https" \
+      traefik.http.middlewares.force-https-header.headers.customrequestheaders.X-Forwarded-Port="443" \
       traefik.http.routers.grafana.middlewares="force-https-header" \
       prometheus_address="grafana:3000" \
       prometheus_path="/dashboard/metrics" \
