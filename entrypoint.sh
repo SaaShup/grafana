@@ -44,4 +44,12 @@ export GF_SERVER_DOMAIN GF_SERVER_ROOT_URL \
   GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH GF_SECURITY_ADMIN_USER GF_AUTH_GENERIC_OAUTH_CLIENT_ID \
   PROM_URL PROM_BASIC_AUTH_USER PROM_BASIC_AUTH_PASSWORD
 
+# Alerting is opt-in: only provisioned when a Discord webhook is set, so
+# paashups that don't define $DISCORD_ALERT_WEBHOOK_URL are unaffected.
+mkdir -p /etc/grafana/provisioning/alerting
+rm -f /etc/grafana/provisioning/alerting/*.yaml
+if [ -n "${DISCORD_ALERT_WEBHOOK_URL:-}" ]; then
+  cp /etc/grafana/alerting-templates/*.yaml /etc/grafana/provisioning/alerting/
+fi
+
 exec /run.sh "$@"

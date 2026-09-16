@@ -1,0 +1,63 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: paashup-containers
+    folder: Paashup Alerts
+    interval: 1m
+    rules:
+      - uid: paashup-container-down
+        title: Container down
+        condition: C
+        for: 2m
+        keep_firing_for: 2m
+        noDataState: Alerting
+        execErrState: Error
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container {{ if $labels.name }}{{ $labels.name }}{{ else }}(unknown — metrics missing){{ end }} crashed (exit code {{ if $labels.exit_code }}{{ $labels.exit_code }}{{ else }}?{{ end }})."
+        data:
+          - refId: A
+            datasourceUid: paashup-prometheus
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              refId: A
+              expr: |
+                max by (name, exit_code) (
+                  label_replace(
+                    label_replace(
+                      (
+                        (netbox_docker_agent_container_exited{status!~"Exited \\(0\\).*"} * 0 + 1)
+                        or
+                        (netbox_docker_agent_container_exited{status=~"Exited \\(0\\).*"} * 0)
+                        or
+                        (netbox_docker_agent_container_stopped * 0)
+                        or
+                        (netbox_docker_agent_container_running * 0)
+                      ),
+                      "name",
+                      "$1",
+                      "name",
+                      "^(.*?)(-[0-9]+)?$"
+                    ),
+                    "exit_code",
+                    "$1",
+                    "status",
+                    "Exited \\(([0-9]+)\\).*"
+                  )
+                )
+              instant: true
+              range: false
+          - refId: C
+            datasourceUid: "__expr__"
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params: [0]
