@@ -14,7 +14,7 @@ contactPoints:
                 "username": "Grafana Alerts",
                 "embeds": [
                   {
-                    "title": "{{ if .Alerts.Firing }}🔴 Container crashed — {{ len .Alerts.Firing }} firing{{ else }}🟢 Container recovered — {{ len .Alerts.Resolved }} resolved{{ end }}",
+                    "title": "{{ if .Alerts.Firing }}🔴 Container crashed on $__env{BASE_DOMAIN} — {{ len .Alerts.Firing }} firing{{ else }}🟢 Container recovered on $__env{BASE_DOMAIN} — {{ len .Alerts.Resolved }} resolved{{ end }}",
                     "color": {{ if .Alerts.Firing }}15548997{{ else }}5763719{{ end }},
                     "description": "{{ if .Alerts.Firing }}**🔻 Crashed**\n{{ range .Alerts.Firing }}• **{{ if .Labels.name }}{{ .Labels.name }}{{ else }}unknown container (metrics missing){{ end }}** — exit code {{ if .Labels.exit_code }}{{ .Labels.exit_code }}{{ else }}?{{ end }}\n{{ end }}{{ end }}{{ if .Alerts.Resolved }}**✅ Back up**\n{{ range .Alerts.Resolved }}• **{{ if .Labels.name }}{{ .Labels.name }}{{ else }}unknown container{{ end }}**\n{{ end }}{{ end }}[🔎 View in Grafana]({{ .ExternalURL }})"
                   }

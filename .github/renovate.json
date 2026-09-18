@@ -6,5 +6,11 @@
   "reviewers": ["parasol-ka"],
   "minimumReleaseAge": "2 days",
   "semanticCommits": "enabled",
-  "branchPrefix": "chore/"
+  "branchPrefix": "chore/",
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": false
+    }
+  ]
 }

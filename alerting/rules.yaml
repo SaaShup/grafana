@@ -16,7 +16,7 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Container {{ if $labels.name }}{{ $labels.name }}{{ else }}(unknown — metrics missing){{ end }} crashed (exit code {{ if $labels.exit_code }}{{ $labels.exit_code }}{{ else }}?{{ end }})."
+          summary: "Container {{ if $labels.name }}{{ $labels.name }}{{ else }}(unknown — metrics missing){{ end }} crashed (exit code {{ if $labels.exit_code }}{{ $labels.exit_code }}{{ else }}?{{ end }}) on $__env{BASE_DOMAIN}."
         data:
           - refId: A
             datasourceUid: paashup-prometheus
