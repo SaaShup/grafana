@@ -7,3 +7,10 @@ policies:
     group_wait: 30s
     group_interval: 5m
     repeat_interval: 10m
+    routes:
+      - receiver: Discord - Paashup Info
+        object_matchers:
+          - ["severity", "=", "info"]
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 24h

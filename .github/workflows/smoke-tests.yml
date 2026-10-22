@@ -1,0 +1,24 @@
+name: Smoke tests
+
+# Builds the image and checks it boots with the expected provisioning,
+# entrypoint overrides and branding (see tests/smoke.sh). Mainly there to
+# catch a Renovate bump of grafana/grafana breaking something.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    name: Build and smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Run smoke tests
+        run: tests/smoke.sh

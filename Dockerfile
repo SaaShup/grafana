@@ -5,6 +5,10 @@ USER root
 # Static: identical for every deployment.
 ENV GF_SERVER_SERVE_FROM_SUB_PATH=true \
     GF_METRICS_ENABLED=true \
+    # keep the plugin versions bundled with this Grafana tag instead of updating
+    # them from grafana.com on every start (the prometheus plugin is unregistered
+    # while updating, which breaks alert evaluations)
+    GF_PLUGINS_PREINSTALL_AUTO_UPDATE=false \
     GF_AUTH_GENERIC_OAUTH_ENABLED=true \
     GF_AUTH_GENERIC_OAUTH_NAME=Keycloak \
     GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=true \

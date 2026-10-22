@@ -4,12 +4,13 @@ groups:
   - orgId: 1
     name: paashup-containers
     folder: Paashup Alerts
-    interval: 1m
+    interval: $__env{ALERTING_INTERVAL}
     rules:
       - uid: paashup-container-down
         title: Container down
         condition: C
-        for: 2m
+        # long enough for a VM reboot: containers and their metrics take a few minutes to come back
+        for: 5m
         keep_firing_for: 2m
         noDataState: Alerting
         execErrState: Error
@@ -61,3 +62,46 @@ groups:
                 - evaluator:
                     type: gt
                     params: [0]
+
+  - orgId: 1
+    name: paashup-machines
+    folder: Paashup Alerts
+    interval: $__env{ALERTING_INTERVAL}
+    rules:
+      # Info only: the VM booted less than 10 minutes ago. The reason (updates, manual,
+      # crash) is written on the VM's journal in paasbox by paasbox-boot-report.
+      - uid: paashup-machine-restarted
+        title: Machine restarted
+        condition: C
+        for: 0s
+        noDataState: OK
+        execErrState: OK
+        labels:
+          severity: info
+        annotations:
+          # $values.A.Value is nil when there's no node-exporter data (NoData state)
+          summary: "{{ $labels.nodename }} restarted {{ with $values.A.Value }}{{ humanizeDuration . }} ago{{ else }}recently{{ end }} (kernel {{ $labels.release }})."
+        data:
+          - refId: A
+            datasourceUid: paashup-prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              refId: A
+              # uptime, with the hostname and kernel as labels
+              expr: |
+                (time() - node_boot_time_seconds)
+                  * on (instance) group_left (nodename, release) node_uname_info
+              instant: true
+              range: false
+          - refId: C
+            datasourceUid: "__expr__"
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: lt
+                    params: [600]

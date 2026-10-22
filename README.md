@@ -5,7 +5,7 @@ Saashup's custom Grafana image, used on **paashups**. It boots directly with a P
 ## Ready out of the box
 
 - **Prometheus datasource** (`paashup.yaml`) pointed at `$PROM_URL`.
-- **4 dashboards** (`dashboards/*.json`): Traefik, Docker, Netbox Docker Agents, Grafana itself. All of them point at a `datasource` template variable (not a fixed uid), so adding/switching the Prometheus datasource applies to every dashboard immediately.
+- **5 dashboards** (`dashboards/*.json`): Traefik, Docker, Netbox Docker Agents, Node Exporter, Grafana itself. All of them point at a `datasource` template variable (not a fixed uid), so adding/switching the Prometheus datasource applies to every dashboard immediately.
 - **OIDC login via Keycloak** — same settings as the rest of the Paashup stack.
 
 ## Required variables
@@ -21,9 +21,13 @@ Everything else (`GF_SERVER_ROOT_URL`, the Keycloak URLs, `PROM_URL`, ...) is re
 
 ## Discord alerting (optional)
 
-Set `DISCORD_ALERT_WEBHOOK_URL` to a Discord webhook URL to get a "Container crashed" alert posted to that channel whenever a container on this paashup exits with a non-zero code (via the Netbox Docker Agent's `netbox_docker_agent_container_exited`/`_stopped`/`_running` metrics, same metric family as the Netbox Docker Agents dashboard) for more than 2 minutes. Deliberate stops (`Exited (0) ...`) don't alert.
+Set `DISCORD_ALERT_WEBHOOK_URL` to a Discord webhook URL to get a "Container crashed" alert posted to that channel whenever a container on this paashup exits with a non-zero code (via the Netbox Docker Agent's `netbox_docker_agent_container_exited`/`_stopped`/`_running` metrics, same metric family as the Netbox Docker Agents dashboard) for more than 5 minutes (long enough for a VM reboot). Deliberate stops (`Exited (0) ...`) don't alert.
+
+The same webhook also gets a blue, info-only "Machine restarted" message when a node-exporter reports an uptime under 10 minutes (hostname and kernel included). Info alerts carry `severity=info` and go through their own contact point (`Discord - Paashup Info`): no "resolved" follow-up.
 
 Left unset (default), no alerting is provisioned.
+
+Rules are evaluated every `ALERTING_INTERVAL` (default `1m`, any Grafana duration such as `30s`).
 
 ## SaaShup branding (optional)
 
@@ -36,6 +40,10 @@ The image does **not** bake a router rule label — container labels are frozen 
 ```bash
 --label "traefik.http.routers.grafana.rule=Host(\`${BASE_DOMAIN}\`) && PathPrefix(\`/dashboard\`)"
 ```
+
+## Smoke tests
+
+`tests/smoke.sh` (needs docker, curl and jq) builds the image, boots it with the default and with custom variables, and checks through the Grafana API: required variables, `entrypoint.sh` overrides (root url, Keycloak URLs, realm, admin group, `PROM_URL`...), datasource, every dashboard of `dashboards/`, alerting (provisioned only with `DISCORD_ALERT_WEBHOOK_URL`, rules evaluating without error against an empty Prometheus, with `ALERTING_INTERVAL=10s` to keep the run around 30s), no bundled plugin updated from grafana.com at startup (`GF_PLUGINS_PREINSTALL_AUTO_UPDATE=false`) and branding (each file in `branding/` actually replaces a stock file).
 
 ## Build & publish
 
