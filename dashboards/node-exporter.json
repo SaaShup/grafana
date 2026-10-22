@@ -98,7 +98,7 @@
       "id": 343,
       "type": "stat",
       "title": "Reboot required",
-      "description": "1 when /run/reboot-required exists: an update (kernel, libc…) only applies after a reboot. With unattended-upgrades Automatic-Reboot, it is done at the configured time. Written by the node-exporter-apt timer (textfile collector).",
+      "description": "1 when /run/reboot-required exists: an update (kernel, libc…) only applies after a reboot. With unattended-upgrades Automatic-Reboot, it is done at the configured time. Written by apt-metrics.sh in the node-exporter container (textfile collector).",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -390,7 +390,7 @@
       "id": 347,
       "type": "stat",
       "title": "Update metrics age",
-      "description": "Time since the node-exporter-apt timer last wrote its metrics (every 5 min). Red: the timer stopped, Reboot required / Pending upgrades are stale.",
+      "description": "Time since apt-metrics.sh (node-exporter container) last wrote its metrics (every 5 min). Red: the loop stopped, the update and reboot panels are stale.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -457,12 +457,393 @@
       ]
     },
     {
+      "id": 348,
+      "type": "stat",
+      "title": "Auto updates",
+      "description": "APT::Periodic::Unattended-Upgrade: unattended-upgrades installs the security updates every day.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "Not collected",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Off",
+                  "color": "red",
+                  "index": 0
+                },
+                "1": {
+                  "text": "On",
+                  "color": "green",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "refId": "A",
+          "expr": "apt_unattended_upgrades_enabled{instance=\"$node\",job=\"$job\"}",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 349,
+      "type": "stat",
+      "title": "Auto reboot",
+      "description": "Unattended-Upgrade::Automatic-Reboot: when an update needs a reboot, the VM reboots by itself at the reboot time. Off: Reboot required stays Yes until someone reboots it.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "Not collected",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Off",
+                  "color": "orange",
+                  "index": 0
+                },
+                "1": {
+                  "text": "On",
+                  "color": "green",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "refId": "A",
+          "expr": "apt_auto_reboot_enabled{instance=\"$node\",job=\"$job\"}",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 350,
+      "type": "stat",
+      "title": "Reboot time (VM)",
+      "description": "Unattended-Upgrade::Automatic-Reboot-Time, in the time zone of the VM (AUTO_REBOOT_TIME of the install script). Not set: the reboot happens right after the updates.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "noValue": "Not set",
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "name",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "refId": "A",
+          "expr": "apt_auto_reboot_time_seconds{instance=\"$node\",job=\"$job\"}",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{time}} {{timezone}}",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 351,
+      "type": "stat",
+      "title": "Reboot time (UTC)",
+      "description": "The same reboot time in UTC, with the current offset of the VM time zone.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "clocks",
+          "noValue": "Not set",
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "refId": "A",
+          "expr": "(apt_auto_reboot_time_seconds{instance=\"$node\",job=\"$job\"} - ignoring(time) apt_auto_reboot_timezone_offset_seconds{instance=\"$node\",job=\"$job\"} + 86400) % 86400",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 352,
+      "type": "stat",
+      "title": "Next reboot",
+      "description": "Reboot planned by unattended-upgrades (shutdown -r), shown in your browser time zone. None: no reboot is planned.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dateTimeAsLocal",
+          "noValue": "Not collected",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "None",
+                  "color": "green",
+                  "index": 0
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "refId": "A",
+          "expr": "node_reboot_scheduled_timestamp_seconds{instance=\"$node\",job=\"$job\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "__auto",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 9
       },
       "id": 261,
       "panels": [],
@@ -509,7 +890,7 @@
         "h": 4,
         "w": 3,
         "x": 0,
-        "y": 6
+        "y": 10
       },
       "id": 323,
       "options": {
@@ -636,7 +1017,7 @@
         "h": 4,
         "w": 3,
         "x": 3,
-        "y": 6
+        "y": 10
       },
       "id": 20,
       "options": {
@@ -719,7 +1100,7 @@
         "h": 4,
         "w": 3,
         "x": 6,
-        "y": 6
+        "y": 10
       },
       "id": 155,
       "options": {
@@ -792,7 +1173,7 @@
         "h": 4,
         "w": 3,
         "x": 9,
-        "y": 6
+        "y": 10
       },
       "id": 16,
       "options": {
@@ -875,7 +1256,7 @@
         "h": 4,
         "w": 3,
         "x": 12,
-        "y": 6
+        "y": 10
       },
       "id": 21,
       "options": {
@@ -957,7 +1338,7 @@
         "h": 4,
         "w": 3,
         "x": 15,
-        "y": 6
+        "y": 10
       },
       "id": 154,
       "options": {
@@ -1029,7 +1410,7 @@
         "h": 2,
         "w": 2,
         "x": 18,
-        "y": 6
+        "y": 10
       },
       "id": 14,
       "maxDataPoints": 100,
@@ -1108,7 +1489,7 @@
         "h": 2,
         "w": 2,
         "x": 20,
-        "y": 6
+        "y": 10
       },
       "id": 75,
       "maxDataPoints": 100,
@@ -1187,7 +1568,7 @@
         "h": 2,
         "w": 2,
         "x": 22,
-        "y": 6
+        "y": 10
       },
       "id": 18,
       "maxDataPoints": 100,
@@ -1270,7 +1651,7 @@
         "h": 2,
         "w": 2,
         "x": 18,
-        "y": 8
+        "y": 12
       },
       "id": 23,
       "maxDataPoints": 100,
@@ -1350,7 +1731,7 @@
         "h": 2,
         "w": 4,
         "x": 20,
-        "y": 8
+        "y": 12
       },
       "id": 15,
       "maxDataPoints": 100,
@@ -1392,7 +1773,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 14
       },
       "id": 263,
       "panels": [],
@@ -1538,7 +1919,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 11
+        "y": 15
       },
       "id": 77,
       "options": {
@@ -1752,7 +2133,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 11
+        "y": 15
       },
       "id": 78,
       "options": {
@@ -1895,7 +2276,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 18
+        "y": 22
       },
       "id": 74,
       "options": {
@@ -1999,7 +2380,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 18
+        "y": 22
       },
       "id": 152,
       "options": {
@@ -2036,7 +2417,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 25
+        "y": 29
       },
       "id": 265,
       "panels": [
@@ -2253,7 +2634,7 @@
             "h": 12,
             "w": 12,
             "x": 0,
-            "y": 26
+            "y": 30
           },
           "id": 3,
           "options": {
@@ -2591,7 +2972,7 @@
             "h": 12,
             "w": 12,
             "x": 12,
-            "y": 26
+            "y": 30
           },
           "id": 24,
           "options": {
@@ -2774,7 +3155,7 @@
             "h": 12,
             "w": 12,
             "x": 0,
-            "y": 438
+            "y": 442
           },
           "id": 84,
           "options": {
@@ -2893,7 +3274,7 @@
             "h": 12,
             "w": 12,
             "x": 12,
-            "y": 438
+            "y": 442
           },
           "id": 338,
           "options": {
@@ -3012,7 +3393,7 @@
             "h": 12,
             "w": 12,
             "x": 0,
-            "y": 450
+            "y": 454
           },
           "id": 229,
           "options": {
@@ -3129,7 +3510,7 @@
             "h": 12,
             "w": 12,
             "x": 12,
-            "y": 450
+            "y": 454
           },
           "id": 42,
           "options": {
@@ -3236,7 +3617,7 @@
             "h": 12,
             "w": 12,
             "x": 0,
-            "y": 462
+            "y": 466
           },
           "id": 43,
           "options": {
@@ -3355,7 +3736,7 @@
             "h": 12,
             "w": 12,
             "x": 12,
-            "y": 462
+            "y": 466
           },
           "id": 156,
           "options": {
@@ -3453,7 +3834,7 @@
             "h": 12,
             "w": 12,
             "x": 0,
-            "y": 474
+            "y": 478
           },
           "id": 127,
           "options": {
@@ -3576,7 +3957,7 @@
             "h": 12,
             "w": 12,
             "x": 12,
-            "y": 474
+            "y": 478
           },
           "id": 322,
           "options": {
@@ -3666,7 +4047,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 26
+        "y": 30
       },
       "id": 266,
       "panels": [
@@ -3753,7 +4134,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 737
+            "y": 741
           },
           "id": 135,
           "options": {
@@ -3861,7 +4242,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 737
+            "y": 741
           },
           "id": 130,
           "options": {
@@ -3986,7 +4367,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 937
+            "y": 941
           },
           "id": 131,
           "options": {
@@ -4093,7 +4474,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 937
+            "y": 941
           },
           "id": 138,
           "options": {
@@ -4252,7 +4633,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 947
+            "y": 951
           },
           "id": 136,
           "options": {
@@ -4360,7 +4741,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 947
+            "y": 951
           },
           "id": 191,
           "options": {
@@ -4486,7 +4867,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 957
+            "y": 961
           },
           "id": 160,
           "options": {
@@ -4635,7 +5016,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 957
+            "y": 961
           },
           "id": 70,
           "options": {
@@ -4751,7 +5132,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 967
+            "y": 971
           },
           "id": 129,
           "options": {
@@ -4858,7 +5239,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 967
+            "y": 971
           },
           "id": 137,
           "options": {
@@ -4970,7 +5351,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 977
+            "y": 981
           },
           "id": 128,
           "options": {
@@ -5088,7 +5469,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 977
+            "y": 981
           },
           "id": 140,
           "options": {
@@ -5160,7 +5541,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 31
       },
       "id": 267,
       "panels": [
@@ -5239,7 +5620,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 738
+            "y": 742
           },
           "id": 176,
           "options": {
@@ -5358,7 +5739,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 738
+            "y": 742
           },
           "id": 22,
           "options": {
@@ -5502,7 +5883,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 918
+            "y": 922
           },
           "id": 175,
           "options": {
@@ -5635,7 +6016,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 918
+            "y": 922
           },
           "id": 307,
           "options": {
@@ -5681,7 +6062,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 28
+        "y": 32
       },
       "id": 293,
       "panels": [
@@ -5747,7 +6128,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 739
+            "y": 743
           },
           "id": 260,
           "options": {
@@ -5865,7 +6246,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 739
+            "y": 743
           },
           "id": 291,
           "options": {
@@ -5963,7 +6344,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 889
+            "y": 893
           },
           "id": 168,
           "options": {
@@ -6093,7 +6474,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 889
+            "y": 893
           },
           "id": 333,
           "options": {
@@ -6201,7 +6582,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 899
+            "y": 903
           },
           "id": 334,
           "options": {
@@ -6313,7 +6694,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 899
+            "y": 903
           },
           "id": 335,
           "options": {
@@ -6389,7 +6770,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 29
+        "y": 33
       },
       "id": 312,
       "panels": [
@@ -6460,7 +6841,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 740
+            "y": 744
           },
           "id": 62,
           "options": {
@@ -6652,7 +7033,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 740
+            "y": 744
           },
           "id": 315,
           "options": {
@@ -6751,7 +7132,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 770
+            "y": 774
           },
           "id": 148,
           "options": {
@@ -6865,7 +7246,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 770
+            "y": 774
           },
           "id": 305,
           "options": {
@@ -7016,7 +7397,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 780
+            "y": 784
           },
           "id": 313,
           "options": {
@@ -7155,7 +7536,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 780
+            "y": 784
           },
           "id": 314,
           "options": {
@@ -7211,7 +7592,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 34
       },
       "id": 269,
       "panels": [
@@ -7278,7 +7659,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 821
+            "y": 825
           },
           "id": 8,
           "options": {
@@ -7415,7 +7796,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 821
+            "y": 825
           },
           "id": 7,
           "options": {
@@ -7606,7 +7987,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 831
+            "y": 835
           },
           "id": 321,
           "options": {
@@ -7724,7 +8105,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 831
+            "y": 835
           },
           "id": 306,
           "options": {
@@ -7823,7 +8204,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 841
+            "y": 845
           },
           "id": 259,
           "options": {
@@ -7952,7 +8333,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 841
+            "y": 845
           },
           "id": 151,
           "options": {
@@ -8006,7 +8387,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 35
       },
       "id": 304,
       "panels": [
@@ -8093,7 +8474,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 742
+            "y": 746
           },
           "id": 158,
           "options": {
@@ -8248,7 +8629,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 742
+            "y": 746
           },
           "id": 300,
           "options": {
@@ -8350,7 +8731,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 752
+            "y": 756
           },
           "id": 302,
           "options": {
@@ -8449,7 +8830,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 752
+            "y": 756
           },
           "id": 325,
           "options": {
@@ -8506,7 +8887,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 32
+        "y": 36
       },
       "id": 296,
       "panels": [
@@ -8648,7 +9029,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 4233
+            "y": 4237
           },
           "id": 298,
           "options": {
@@ -8787,7 +9168,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 4233
+            "y": 4237
           },
           "id": 331,
           "options": {
@@ -8886,7 +9267,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 4243
+            "y": 4247
           },
           "id": 297,
           "options": {
@@ -8985,7 +9366,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 4243
+            "y": 4247
           },
           "id": 332,
           "options": {
@@ -9031,7 +9412,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 33
+        "y": 37
       },
       "id": 270,
       "panels": [
@@ -9125,7 +9506,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 34
+            "y": 38
           },
           "id": 9,
           "options": {
@@ -9257,7 +9638,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 34
+            "y": 38
           },
           "id": 33,
           "options": {
@@ -9393,7 +9774,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 394
+            "y": 398
           },
           "id": 37,
           "options": {
@@ -9516,7 +9897,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 394
+            "y": 398
           },
           "id": 35,
           "options": {
@@ -9641,7 +10022,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 404
+            "y": 408
           },
           "id": 133,
           "options": {
@@ -9762,7 +10143,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 404
+            "y": 408
           },
           "id": 36,
           "options": {
@@ -9893,7 +10274,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 414
+            "y": 418
           },
           "id": 301,
           "options": {
@@ -10024,7 +10405,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 414
+            "y": 418
           },
           "id": 326,
           "options": {
@@ -10138,7 +10519,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 424
+            "y": 428
           },
           "id": 34,
           "options": {
@@ -10183,7 +10564,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 34
+        "y": 38
       },
       "id": 271,
       "panels": [
@@ -10280,7 +10661,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 35
+            "y": 39
           },
           "id": 28,
           "options": {
@@ -10387,7 +10768,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 35
+            "y": 39
           },
           "id": 41,
           "options": {
@@ -10486,7 +10867,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 375
+            "y": 379
           },
           "id": 44,
           "options": {
@@ -10594,7 +10975,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 375
+            "y": 379
           },
           "id": 219,
           "options": {
@@ -10639,7 +11020,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 35
+        "y": 39
       },
       "id": 272,
       "panels": [
@@ -10718,7 +11099,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 36
+            "y": 40
           },
           "id": 60,
           "options": {
@@ -10840,7 +11221,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 36
+            "y": 40
           },
           "id": 142,
           "options": {
@@ -10960,7 +11341,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 256
+            "y": 260
           },
           "id": 143,
           "options": {
@@ -11080,7 +11461,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 256
+            "y": 260
           },
           "id": 141,
           "options": {
@@ -11187,7 +11568,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 266
+            "y": 270
           },
           "id": 146,
           "options": {
@@ -11285,7 +11666,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 266
+            "y": 270
           },
           "id": 327,
           "options": {
@@ -11383,7 +11764,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 276
+            "y": 280
           },
           "id": 145,
           "options": {
@@ -11494,7 +11875,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 276
+            "y": 280
           },
           "id": 144,
           "options": {
@@ -11614,7 +11995,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 286
+            "y": 290
           },
           "id": 232,
           "options": {
@@ -11712,7 +12093,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 286
+            "y": 290
           },
           "id": 231,
           "options": {
@@ -11811,7 +12192,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 296
+            "y": 300
           },
           "id": 230,
           "options": {
@@ -11939,7 +12320,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 296
+            "y": 300
           },
           "id": 61,
           "options": {
@@ -12045,7 +12426,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 306
+            "y": 310
           },
           "id": 309,
           "options": {
@@ -12122,7 +12503,7 @@
             "h": 10,
             "w": 6,
             "x": 12,
-            "y": 306
+            "y": 310
           },
           "id": 280,
           "options": {
@@ -12195,7 +12576,7 @@
             "h": 10,
             "w": 6,
             "x": 18,
-            "y": 306
+            "y": 310
           },
           "id": 288,
           "options": {
@@ -12247,7 +12628,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 36
+        "y": 40
       },
       "id": 273,
       "panels": [
@@ -12314,7 +12695,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 37
+            "y": 41
           },
           "id": 63,
           "options": {
@@ -12444,7 +12825,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 37
+            "y": 41
           },
           "id": 124,
           "options": {
@@ -12554,7 +12935,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 47
+            "y": 51
           },
           "id": 126,
           "options": {
@@ -12654,7 +13035,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 47
+            "y": 51
           },
           "id": 125,
           "options": {
@@ -12764,7 +13145,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 57
+            "y": 61
           },
           "id": 220,
           "options": {
@@ -12882,7 +13263,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 57
+            "y": 61
           },
           "id": 339,
           "options": {
@@ -12992,7 +13373,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 67
+            "y": 71
           },
           "id": 336,
           "options": {
@@ -13114,7 +13495,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 67
+            "y": 71
           },
           "id": 290,
           "options": {
@@ -13227,7 +13608,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 77
+            "y": 81
           },
           "id": 310,
           "options": {
@@ -13346,7 +13727,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 77
+            "y": 81
           },
           "id": 330,
           "options": {
@@ -13403,7 +13784,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 37
+        "y": 41
       },
       "id": 274,
       "panels": [
@@ -13482,7 +13863,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 168
+            "y": 172
           },
           "id": 221,
           "options": {
@@ -13607,7 +13988,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 168
+            "y": 172
           },
           "id": 299,
           "options": {
@@ -13728,7 +14109,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 198
+            "y": 202
           },
           "id": 55,
           "options": {
@@ -13853,7 +14234,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 198
+            "y": 202
           },
           "id": 115,
           "options": {
@@ -13962,7 +14343,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 208
+            "y": 212
           },
           "id": 104,
           "options": {
@@ -14132,7 +14513,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 208
+            "y": 212
           },
           "id": 109,
           "options": {
@@ -14268,7 +14649,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 218
+            "y": 222
           },
           "id": 50,
           "options": {
@@ -14382,7 +14763,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 218
+            "y": 222
           },
           "id": 91,
           "options": {
@@ -14531,7 +14912,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 228
+            "y": 232
           },
           "id": 85,
           "options": {
@@ -14639,7 +15020,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 228
+            "y": 232
           },
           "id": 337,
           "options": {
@@ -14748,7 +15129,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 238
+            "y": 242
           },
           "id": 82,
           "options": {
@@ -14858,7 +15239,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 238
+            "y": 242
           },
           "id": 320,
           "options": {
@@ -14998,7 +15379,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 248
+            "y": 252
           },
           "id": 341,
           "options": {
@@ -15141,7 +15522,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 248
+            "y": 252
           },
           "id": 340,
           "options": {
@@ -15195,7 +15576,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 38
+        "y": 42
       },
       "id": 279,
       "panels": [
@@ -15265,7 +15646,7 @@
             "h": 10,
             "w": 12,
             "x": 0,
-            "y": 169
+            "y": 173
           },
           "id": 40,
           "options": {
@@ -15363,7 +15744,7 @@
             "h": 10,
             "w": 12,
             "x": 12,
-            "y": 169
+            "y": 173
           },
           "id": 308,
           "options": {
@@ -15516,7 +15897,7 @@
             "h": 10,
             "w": 10,
             "x": 0,
-            "y": 179
+            "y": 183
           },
           "id": 149,
           "options": {
@@ -15677,7 +16058,7 @@
             "h": 10,
             "w": 10,
             "x": 10,
-            "y": 179
+            "y": 183
           },
           "id": 64,
           "options": {
@@ -15758,7 +16139,7 @@
             "h": 10,
             "w": 4,
             "x": 20,
-            "y": 179
+            "y": 183
           },
           "id": 157,
           "options": {
