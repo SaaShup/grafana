@@ -21,3 +21,26 @@ contactPoints:
                 ]
               }
         disableResolveMessage: false
+
+  # Info messages (severity=info): one message, no "resolved" follow-up
+  - orgId: 1
+    name: Discord - Paashup Info
+    receivers:
+      - uid: discord-paashup-info
+        type: webhook
+        settings:
+          url: $__env{DISCORD_ALERT_WEBHOOK_URL}
+          httpMethod: POST
+          payload:
+            template: |
+              {
+                "username": "Grafana Alerts",
+                "embeds": [
+                  {
+                    "title": "🔄 {{ if eq (len .Alerts.Firing) 1 }}{{ (index .Alerts.Firing 0).Labels.nodename }} restarted{{ else }}{{ len .Alerts.Firing }} machines restarted{{ end }} on $__env{BASE_DOMAIN}",
+                    "color": 3447003,
+                    "description": "{{ range .Alerts.Firing }}• {{ .Annotations.summary }}\n{{ end }}[🔎 View in Grafana]({{ .ExternalURL }})"
+                  }
+                ]
+              }
+        disableResolveMessage: true
