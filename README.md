@@ -21,13 +21,15 @@ Everything else (`GF_SERVER_ROOT_URL`, the Keycloak URLs, `PROM_URL`, ...) is re
 
 ## Discord alerting (optional)
 
-Set `DISCORD_ALERT_WEBHOOK_URL` to a Discord webhook URL to get a "Container crashed" alert posted to that channel whenever a container on this paashup exits with a non-zero code (via the Netbox Docker Agent's `netbox_docker_agent_container_exited`/`_stopped`/`_running` metrics, same metric family as the Netbox Docker Agents dashboard) for more than 5 minutes (long enough for a VM reboot). Deliberate stops (`Exited (0) ...`) don't alert.
+Set `DISCORD_ALERT_WEBHOOK_URL` to a Discord webhook URL to get a "Container crashed" alert posted to that channel whenever a container on this paashup exits with a non-zero code (via the Netbox Docker Agent's `*_container_exited`/`_stopped`/`_running` metrics, same metric family as the Netbox Docker Agents dashboard) for more than 5 minutes (long enough for a VM reboot). Deliberate stops (`Exited (0) ...`) don't alert.
 
 The same webhook also gets a blue, info-only "Machine restarted" message when a node-exporter reports an uptime under 10 minutes (hostname and kernel included). Info alerts carry `severity=info` and go through their own contact point (`Discord - Paashup Info`): no "resolved" follow-up.
 
 Left unset (default), no alerting is provisioned.
 
 Rules are evaluated every `ALERTING_INTERVAL` (default `1m`, any Grafana duration such as `30s`).
+
+Both the alert rule and the "Netbox Docker Agents" dashboard match these metrics by `__name__` suffix (e.g. `{__name__=~".*_container_running"}`) rather than a fixed prefix, so renaming the agent (e.g. `netbox_docker_agent_container_running` → `agent_container_running`) needs no config change — just make sure the old and new metric names aren't exposed at the same time, or containers would be counted twice.
 
 ## SaaShup branding (optional)
 

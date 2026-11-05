@@ -31,13 +31,13 @@ groups:
                   label_replace(
                     label_replace(
                       (
-                        (netbox_docker_agent_container_exited{status!~"Exited \\(0\\).*"} * 0 + 1)
+                        ({__name__=~".*_container_exited", status!~"Exited \\(0\\).*"} * 0 + 1)
                         or
-                        (netbox_docker_agent_container_exited{status=~"Exited \\(0\\).*"} * 0)
+                        ({__name__=~".*_container_exited", status=~"Exited \\(0\\).*"} * 0)
                         or
-                        (netbox_docker_agent_container_stopped * 0)
+                        ({__name__=~".*_container_stopped"} * 0)
                         or
-                        (netbox_docker_agent_container_running * 0)
+                        ({__name__=~".*_container_running"} * 0)
                       ),
                       "name",
                       "$1",

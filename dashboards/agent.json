@@ -39,7 +39,7 @@
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "label_replace(\r\n  netbox_docker_agent_container_running\r\n  or netbox_docker_agent_container_exited\r\n  or netbox_docker_agent_container_stopped,\r\n  \"clean_name\",\r\n  \"$1\",\r\n  \"name\",\r\n  \"^(.+?)(?:-[0-9]{13})?$\"\r\n)",
+          "expr": "label_replace(\r\n  {__name__=~\".*_container_running\"}\r\n  or {__name__=~\".*_container_exited\"}\r\n  or {__name__=~\".*_container_stopped\"},\r\n  \"clean_name\",\r\n  \"$1\",\r\n  \"name\",\r\n  \"^(.+?)(?:-[0-9]{13})?$\"\r\n)",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -106,7 +106,7 @@
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "editorMode": "code",
-          "expr": "100 *\r\ncount(\r\n  max by (name) (\r\n    netbox_docker_agent_container_running\r\n  ) == 1\r\n)\r\n/\r\ncount(\r\n  max by (name) (\r\n    netbox_docker_agent_container_running\r\n    or\r\n    netbox_docker_agent_container_exited\r\n    or\r\n    netbox_docker_agent_container_stopped\r\n  )\r\n)",
+          "expr": "100 *\r\ncount(\r\n  max by (name) (\r\n    {__name__=~\".*_container_running\"}\r\n  ) == 1\r\n)\r\n/\r\ncount(\r\n  max by (name) (\r\n    {__name__=~\".*_container_running\"}\r\n    or\r\n    {__name__=~\".*_container_exited\"}\r\n    or\r\n    {__name__=~\".*_container_stopped\"}\r\n  )\r\n)",
           "instant": true,
           "legendFormat": "Running",
           "range": false
@@ -164,7 +164,7 @@
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "netbox_docker_agent_netbox_error_response",
+          "expr": "{__name__=~\".*_netbox_error_response\"}",
           "instant": true,
           "legendFormat": "Errors",
           "range": false
@@ -211,7 +211,7 @@
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "netbox_docker_agent_docker_daemon",
+          "expr": "{__name__=~\".*_docker_daemon\"}",
           "instant": true,
           "legendFormat": "Daemon",
           "range": false
@@ -265,7 +265,7 @@
           "refId": "A",
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "editorMode": "code",
-          "expr": "max by (normalized_name) (\r\n  label_replace(\r\n    (\r\n      netbox_docker_agent_container_running\r\n      or\r\n      (netbox_docker_agent_container_exited * 0)\r\n      or\r\n      (netbox_docker_agent_container_stopped * 0)\r\n    ),\r\n    \"normalized_name\",\r\n    \"$1\",\r\n    \"name\",\r\n    \"^(.*?)(-[0-9]+)?$\"\r\n  )\r\n)",
+          "expr": "max by (normalized_name) (\r\n  label_replace(\r\n    (\r\n      {__name__=~\".*_container_running\"}\r\n      or\r\n      ({__name__=~\".*_container_exited\"} * 0)\r\n      or\r\n      ({__name__=~\".*_container_stopped\"} * 0)\r\n    ),\r\n    \"normalized_name\",\r\n    \"$1\",\r\n    \"name\",\r\n    \"^(.*?)(-[0-9]+)?$\"\r\n  )\r\n)",
           "legendFormat": "{{name}}",
           "range": true
         }
